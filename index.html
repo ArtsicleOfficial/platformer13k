@@ -1,0 +1,270 @@
+<html><body style="background-color:black;user-select: none"><center><canvas id="game" width="800" height="600" style="background-color:aliceblue"></canvas><p style="color:white">Press P to add a new player. (Max of 2, first player uses arrow keys, second uses WASD. Second player optional.)</p></center><script>
+players = []
+objects = []
+canvas = document.getElementById("game");
+ctx = canvas.getContext("2d");
+function createObject(x,y,w,h,collidable,color) {
+	objects.push({x,y,w,h,collidable,color})
+	return objects[objects.length-1];
+}
+function createPlayer(x,y,w,h,collidable,color,controls,speed,id) {
+	players.push({x,y,w,h,collidable,color,controls,gravity:0,move:{l:false,r:false},speed,id:id})
+	return players[objects.length-1]
+}
+/*REMOVE THIS FUNCTION IN THE MINIFIED VERSION*/
+function log(string) {
+	console.log(string);
+}
+/*REMOVE THIS FUNCTION IN THE MINIFIED VERSION!*/
+window.addEventListener("keydown",function(k) {
+	for(p in players) {
+		var plr = players[p];
+		switch(k.keyCode) {
+		case plr.controls.r:
+			plr.move.r=true;
+			break;
+		case plr.controls.l:
+			plr.move.l=true;
+			break;
+		case plr.controls.u:
+			if(playerInGround(plr)==true){plr.gravity=-5};
+			break;
+		}
+	}
+	if(k.keyCode==80) {
+		var p = players[0];
+		if(players.length < 2) {
+			createPlayer(0,0,p.w,p.h,p.collidable,p.color,{u:87,l:65,r:68},2,"2");
+		}
+	}
+})
+window.addEventListener("keyup",function(k) {
+	for(p in players) {
+		var plr = players[p];
+		switch(k.keyCode) {
+		case plr.controls.r:
+			plr.move.r=false;
+			break;
+		case plr.controls.l:
+			plr.move.l=false;
+		}
+	}
+})
+
+/*REMOVE THIS CODE IN THE MINIFIED VERSION!*/
+var vec1;
+var vec2;
+var created = [];
+canvas.addEventListener("mousedown",function(k) {
+	plr = players[0]
+	var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
+	var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
+	vec1={x,y};
+})
+canvas.addEventListener("mouseup",function(k) {
+	var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
+	var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
+	vec2={x:x-vec1.x,y:y-vec1.y};
+
+	var obj = "createObject(" + (vec1.x) + "," + (vec1.y) + "," + (vec2.x) + "," + (vec2.y) + ",true,\"0,0,0\")";
+	created.push(obj);
+	var createdStr = "";
+	for(var i in created) {
+		createdStr+=created[i] + "\n";
+	}
+})
+/*REMOVE THIS CODE IN THE MINIFIED VERSION!*/
+function playerInGround(plr) {
+	plr.y+=1;
+	if(collide(plr)) {
+		plr.y-=1;
+		return true;
+	}
+	return false;
+}
+function drawObjects() {
+	for(var o in objects) {
+		var obj = objects[o];
+		ctx.fillStyle = obj.color;
+		var plr = players[0]
+		ctx.fillRect(obj.x-plr.x+(800/2-(plr.w/2)),obj.y-plr.y+400,obj.w,obj.h);
+	}
+}
+function indicator(id,posX,posY,off) {
+		ctx.save();
+		ctx.beginPath();
+		ctx.moveTo(posX,posY-15-off);
+		ctx.lineTo(posX+10,posY-15-off);
+		ctx.lineTo(posX+5,posY-5-off);
+		ctx.lineWidth=2;
+		ctx.strokeStyle="rgb(150,180,160)";
+		ctx.fillStyle="rgb(150,180,160)";
+		ctx.fill();
+		ctx.stroke();
+		ctx.fillText(id,posX+3,posY-20-off)
+		ctx.restore();
+		//ctx.lineTo(posX+2,posY-5);
+		ctx.closePath();
+}
+function drawPlayers() {
+	var off = offset/10;
+	var plr = players[0]
+	ctx.fillStyle = plr.color;
+	var posX = 800/2-(plr.w/2);
+	var posY = 400
+	ctx.fillRect(posX,posY,plr.w,plr.h);
+	if(players.length > 1) {
+		indicator(plr.id,posX,posY,off);
+	}
+	for(var p in players) {
+		if(p != 0) {
+			var pl = players[p];
+			ctx.fillStyle = plr.color;
+			posX = pl.x-plr.x+(800/2-(plr.w/2))
+			posY = pl.y-plr.y+400
+
+			ctx.fillRect(posX,posY,pl.w,pl.h);
+			/*ctx.save();
+			ctx.beginPath();*/
+			
+			indicator(pl.id,posX,posY,off)
+			//I honestly don't know how this makes a triangle.
+			/*ctx.moveTo(posX+10,posY-5-off);
+			ctx.lineTo(posX+20,posY-5-off);
+			ctx.lineTo(posX+15,posY+5-off);
+			ctx.lineWidth=2;
+			ctx.strokeStyle="rgb(150,180,160)";
+			ctx.fillStyle="rgb(150,180,160)";
+			ctx.fill();
+			ctx.stroke();
+			ctx.fillText(pl.id,posX+12.5,posY-10-off)
+			ctx.restore();
+			//ctx.lineTo(posX+2,posY-5);
+			ctx.closePath();*/
+		}
+	}
+}
+function createObjects() {
+	createObject(-280,150,70,420,true,"0,0,0")
+	createObject(-210,440,410,130,true,"0,0,0")
+	createObject(200,370,120,200,true,"0,0,0")
+	createObject(370,350,40,10,true,"0,0,0")
+	createObject(420,310,40,10,true,"0,0,0")
+	createObject(550,310,40,10,true,"0,0,0")
+	createObject(580,260,30,10,true,"0,0,0")
+	createObject(580,200,20,10,true,"0,0,0")
+	createObject(320,520,410,50,true,"0,0,0")
+	createObject(320,400,30,155,true,"0,0,0")
+	createObject(350,430,30,125,true,"0,0,0")
+	createObject(380,460,30,110,true,"0,0,0")
+	createObject(410,490,30,75,true,"0,0,0")
+	createObject(440,520,30,50,true,"0,0,0")
+
+	createPlayer(0,0,10,20,true,"255,255,255",{l:37,u:38,r:39},2,"1");
+}
+function calculateGravity(g) {
+	return g+(10/60);
+}
+function isColliding(x,y,w,h,x2,y2,w2,h2) {
+	return (x+w> x2 && x < x2+w2 && y+h > y2 && y < y2+h2)
+}
+function collide(plr) {
+	for(var o in objects) {
+		var obj = objects[o];
+		if(plr.collidable) {
+			if(isColliding(plr.x,plr.y,plr.w,plr.h,obj.x,obj.y,obj.w,obj.h)==true && obj.collidable == true) {
+				return true;
+			}
+		} else {
+			if(isColliding(plr.x,plr.y,plr.w,plr.h,obj.x,obj.y,obj.w,obj.h)==true && obj.collidable != true) {
+				return true;
+			}
+		}
+	}
+	for(var p in players) {
+		var pl = players[p];
+		if(plr.id !== pl.id) {
+			if(plr.collidable) {
+				if(isColliding(plr.x,plr.y,plr.w,plr.h,pl.x,pl.y,pl.w,pl.h)==true && pl.collidable == true) {
+					return true;
+				}
+			} else {
+				if(isColliding(plr.x,plr.y,plr.w,plr.h,pl.x,pl.y,pl.w,pl.h)==true && pl.collidable != true) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+var offset = 25;
+var up = true;
+function logicPlayers() {
+	if(up) {
+		offset++;
+	} else {
+		offset--;
+	}
+	log(offset);
+	if(offset >= 50) {
+		up = false;
+	}
+	if(offset <= 0) {
+		up = true;
+	}
+	for(let p in players) {
+		var plr = players[p];
+		plr.gravity=calculateGravity(plr.gravity);
+		plr.y+=plr.gravity
+		if(collide(plr)==true) {
+			plr.y-=plr.gravity
+			plr.gravity = 0
+		}
+		if(plr.move.r) {
+			plr.x+=plr.speed;
+			if(collide(plr)==true) {
+				plr.x-=plr.speed;
+				for(i=0;i<plr.speed;i++) {
+					plr.x+=i;
+					if(collide(plr)==true)plr.x-=i;
+				}
+			}
+		}
+		if(plr.move.l) {
+			plr.x-=plr.speed;
+			if(collide(plr)==true) {
+				plr.x+=plr.speed;
+				for(i=0;i<plr.speed;i++) {
+					plr.x-=i;
+					if(collide(plr)==true)plr.x+=i;
+				}
+			}
+		}
+
+	}
+}
+function loop() {
+	window.requestAnimFrame(function() {
+		loop();
+	});
+
+	logicPlayers();
+
+	ctx.clearRect(0,0,800,600);
+	drawObjects();
+	drawPlayers();
+	
+}
+
+window.requestAnimFrame = (function() {
+	return window.requestAnimationFrame ||
+		   window.webkitRequestAnimationFrame ||
+		   window.oRequestAnimationFrame ||
+		   window.setTimeout(function(callback){},1000/60);
+})();
+
+createObjects();
+
+loop();
+</script></body>
+</html>
