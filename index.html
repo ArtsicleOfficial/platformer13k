@@ -116,6 +116,9 @@ function getPlayerOffset(posX,posY) {
 	var plr = players[0];
 	return {x:posX-plr.x+(800/2-(plr.w/2)),y:(posY-plr.y)+400};
 }
+function getPlayerPos() {
+	return {x:(800/2-(plr.w/2)),y:400};
+}
 function drawObjects(collidable) {
 	for(var o in objects) {
 		var obj = objects[o];
@@ -132,19 +135,36 @@ function drawObjects(collidable) {
 		}
 	}
 }
-function indicator(id,posX,posY,off) {
+function indicator(id,posX,posY,off,pointX,pointY) {
 		ctx.save();
 		ctx.beginPath();
-		ctx.moveTo(posX,posY-15-off);
-		ctx.lineTo(posX+10,posY-15-off);
-		ctx.lineTo(posX+5,posY-5-off);
+		
+		if(pointX != undefined && pointY != undefined) {
+			ctx.save();
+			ctx.transform(0,1,1,0,posX+10,posY-off-15);
+			ctx.rotate(Math.atan2(posX-pointX,posY-pointY))
+			/*ctx.moveTo(0,0-15);
+			ctx.lineTo(0+10,0-15);
+			ctx.lineTo(0+5,0-5);*/
+			
+			ctx.moveTo(0,0);
+			ctx.lineTo(15,5);
+			ctx.lineTo(15,-5)
+			ctx.restore();
+			//ctx.fillRect(0,0,20,3);
+		} else {
+			ctx.moveTo(posX,posY-15-off);
+			ctx.lineTo(posX+10,posY-15-off);
+			ctx.lineTo(posX+5,posY-5-off);
+			ctx.fillStyle = "rgb(0,100,0)"
+			ctx.fillText(id,posX+3,posY-20-off)
+		}
 		ctx.lineWidth=2;
 		var clr = "rgb(120,180,140)";
 		ctx.strokeStyle=clr;
 		ctx.fillStyle=clr;
 		ctx.fill();
 		ctx.stroke();
-		ctx.fillText(id,posX+3,posY-20-off)
 		ctx.restore();
 		//ctx.lineTo(posX+2,posY-5);
 		ctx.closePath();
@@ -160,6 +180,7 @@ function minOrMax(num,min,max) {
 	} else {
 		num=max;
 	}
+	return num;
 }
 function drawPlayers() {
 	var off = offset/10;
@@ -183,11 +204,11 @@ function drawPlayers() {
 			/*ctx.save();
 			ctx.beginPath();*/
 			if(onScreen(posX,posY,pl.w,pl.h)) {
-				indicator(pl.id,posX,posY,off)
+				indicator(pl.id,posX,posY,off,"down")
 			} else {
 				posX = minOrMax(posX,10,790);
 				posY = minMax(posY,10,590);
-				indicator(pl.id,posX,posY,off)
+				indicator(pl.id,posX,posY,off,position.x,position.y)
 			}
 			
 			//I honestly don't know how this makes a triangle.
