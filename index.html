@@ -9,17 +9,10 @@ function createObject(x,y,w,h,collidable,color) {
 	objects.push({x,y,w,h,collidable,color})
 	return objects[objects.length-1]
 }
-
-
-
 function createPlayer(x,y,w,h,collidable,color,controls,speed,id) {
 	players.push({x,y,w,h,collidable,color,controls,gravity:0,move:{l:false,r:false},speed,id:id})
 	return players[players.length-1]
 }
-
-
-
-
 function createParticle(x,y,color,size,amount,spreadX,speedY,life) {
 	particles.push({x,y,color,size,amount,spreadX,speedY,did:0,life});
 	return particles[particles.length-1]
@@ -206,7 +199,7 @@ function drawPlayers() {
 			if(onScreen(posX,posY,pl.w,pl.h)) {
 				indicator(pl.id,posX,posY,off,"down")
 			} else {
-				posX = minOrMax(posX,10,790);
+				posX = minMax(posX,10,790);
 				posY = minMax(posY,10,590);
 				indicator(pl.id,posX,posY,off,position.x,position.y)
 			}
@@ -259,14 +252,30 @@ function createObjects() {
 	createObject(660,-70,30,120,true,"0,0,0")
 	createObject(740,-70,30,120,true,"0,0,0")
 	createObject(820,-70,30,120,true,"0,0,0")
+	createObject(640,490,300,10,true,"0,0,0")
+	createObject(680,440,40,50,true,"0,0,0")
+	createObject(780,440,60,50,true,"0,0,0")
+	createObject(870,460,20,30,true,"0,0,0")
 
+	createObject(660,460,20,30,false,"100,100,100")
+	createObject(770,460,10,30,false,"100,100,100")
+	createObject(840,470,10,20,false,"100,100,100")
+	createObject(900,440,40,50,false,"100,100,100")
 	createObject(620,60,10,60,false,"100,100,100")
+	createObject(920,500,10,20,false,"100,100,100")
+	createObject(830,500,10,20,false,"100,100,100")
+	createObject(720,500,10,20,false,"100,100,100")
+	createObject(660,500,10,20,false,"100,100,100")
+	createObject(770,500,10,20,false,"100,100,100")
+	createObject(870,500,10,20,false,"100,100,100")
+
 	createParticle(670,-40,"100,100,100",5,60,3,-3,1000);
 	createParticle(750,-40,"100,100,100",5,60,3,-3,1000);
 	createParticle(830,-40,"100,100,100",5,60,3,-3,1000);
 	//players
 	createPlayer(0,0,10,20,true,"255,255,255",{l:37,u:38,r:39},2,"1");
 }
+
 function calculateGravity(g) {
 	return g+(10/60);
 }
