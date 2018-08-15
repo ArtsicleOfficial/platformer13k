@@ -1,4 +1,4 @@
-<html><body style="background-color:black;user-select: none"><center><canvas id="game" width="800" height="600" style="background-color:aliceblue"></canvas><p style="color:white">Press P to add a new player. (Max of 2, first player uses arrow keys, second uses WASD. Second player optional.)</p></center><script>
+<html><body style="background-color:black;user-select: none" oncontextmenu="return false;"><center><canvas id="game" width="800" height="600" style="background-color:aliceblue"></canvas><p style="color:white">Press P to add a new player. (Max of 2, first player uses arrow keys, second uses WASD. Second player optional.)</p></center><script>
 players = []
 objects = []
 canvas = document.getElementById("game");
@@ -34,7 +34,7 @@ window.addEventListener("keydown",function(k) {
 	if(k.keyCode==80) {
 		var p = players[0];
 		if(players.length < 2) {
-			createPlayer(0,0,p.w,p.h,p.collidable,p.color,{u:87,l:65,r:68},2,"2");
+			createPlayer(0,-20,p.w,p.h,p.collidable,p.color,{u:87,l:65,r:68},2,"2");
 		}
 	}
 })
@@ -59,18 +59,26 @@ canvas.addEventListener("mousedown",function(k) {
 	plr = players[0]
 	var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
 	var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
-	vec1={x,y};
+	if(k.button == 2) {
+		plr.x = x;
+		plr.y = y;
+	} else {
+		vec1={x,y};
+	}
 })
 canvas.addEventListener("mouseup",function(k) {
-	var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
-	var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
-	vec2={x:x-vec1.x,y:y-vec1.y};
+	if(k.button == 0) {
+		var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
+		var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
+		vec2={x:x-vec1.x,y:y-vec1.y};
 
-	var obj = "createObject(" + (vec1.x) + "," + (vec1.y) + "," + (vec2.x) + "," + (vec2.y) + ",true,\"0,0,0\")";
-	created.push(obj);
-	var createdStr = "";
-	for(var i in created) {
-		createdStr+=created[i] + "\n";
+		var obj = "createObject(" + (vec1.x) + "," + (vec1.y) + "," + (vec2.x) + "," + (vec2.y) + ",true,\"0,0,0\")";
+		created.push(obj);
+		var createdStr = "";
+		for(var i in created) {
+			createdStr+=created[i] + "\n";
+		}
+		log(createdStr);
 	}
 })
 /*REMOVE THIS CODE IN THE MINIFIED VERSION!*/
@@ -82,12 +90,19 @@ function playerInGround(plr) {
 	}
 	return false;
 }
-function drawObjects() {
+function drawObjects(collidable) {
 	for(var o in objects) {
 		var obj = objects[o];
-		ctx.fillStyle = obj.color;
-		var plr = players[0]
-		ctx.fillRect(obj.x-plr.x+(800/2-(plr.w/2)),obj.y-plr.y+400,obj.w,obj.h);
+		if(obj.collidable == collidable) {
+			var obj = objects[o];
+			ctx.fillStyle = "rgb(" + obj.color + ")";
+			var plr = players[0]
+			var x = obj.x-plr.x+(800/2-(plr.w/2));
+			var y = obj.y-plr.y+400;
+			if(x+obj.w >= 0 && y+obj.h >= 0 && x <= 800 && y <= 600) {
+			ctx.fillRect(x,y,obj.w,obj.h);
+			}
+		}
 	}
 }
 function indicator(id,posX,posY,off) {
@@ -146,6 +161,7 @@ function drawPlayers() {
 	}
 }
 function createObjects() {
+	//start
 	createObject(-280,150,70,420,true,"0,0,0")
 	createObject(-210,440,410,130,true,"0,0,0")
 	createObject(200,370,120,200,true,"0,0,0")
@@ -160,7 +176,24 @@ function createObjects() {
 	createObject(380,460,30,110,true,"0,0,0")
 	createObject(410,490,30,75,true,"0,0,0")
 	createObject(440,520,30,50,true,"0,0,0")
+	createObject(580,140,30,10,true,"0,0,0")
+	createObject(640,40,280,20,true,"0,0,0")
 
+	createObject(430,320,20,200,false,"100,100,100")
+	createObject(380,360,20,120,false,"100,100,100")
+	createObject(590,270,30,10,false,"100,100,100")
+	createObject(590,210,30,10,false,"100,100,100")
+	createObject(560,310,20,210,false,"100,100,100")
+	createObject(590,150,30,10,false,"100,100,100")
+
+	//factory
+	createObject(620,40,20,20,true,"0,0,0")
+	createObject(620,120,20,450,true,"0,0,0")
+	createObject(660,-70,30,120,true,"0,0,0")
+
+	createObject(620,60,10,60,false,"100,100,100")
+
+	//players
 	createPlayer(0,0,10,20,true,"255,255,255",{l:37,u:38,r:39},2,"1");
 }
 function calculateGravity(g) {
@@ -251,7 +284,8 @@ function loop() {
 	logicPlayers();
 
 	ctx.clearRect(0,0,800,600);
-	drawObjects();
+	drawObjects(false);
+	drawObjects(true);
 	drawPlayers();
 	
 }
