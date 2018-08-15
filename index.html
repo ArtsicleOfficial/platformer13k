@@ -25,7 +25,7 @@ function createParticle(x,y,color,size,amount,spreadX,speedY,life) {
 	return particles[particles.length-1]
 }
 function createSubParticle(parent) {
-	subparticles.push({x:(parent.x+(Math.random()+1)*5+-1),y:parent.y,life:0,parent});
+	subparticles.push({x:parent.x,y:parent.y,life:0,parent});
 	return subparticles[particles.length-1]
 }
 /*REMOVE THIS FUNCTION IN THE MINIFIED VERSION*/
@@ -126,8 +126,8 @@ function drawObjects(collidable) {
 			var position = getPlayerOffset(obj.x,obj.y);
 			var x = position.x;
 			var y = position.y;
-			if(x+obj.w >= 0 && y+obj.h >= 0 && x <= 800 && y <= 600) {
-			ctx.fillRect(x,y,obj.w,obj.h);
+			if(onScreen(x,y,obj.w,obj.h)) {
+				ctx.fillRect(x,y,obj.w,obj.h);
 			}
 		}
 	}
@@ -148,6 +148,18 @@ function indicator(id,posX,posY,off) {
 		ctx.restore();
 		//ctx.lineTo(posX+2,posY-5);
 		ctx.closePath();
+}
+function minMax(num,min,max) {
+	if(num <= min) num=min;
+	if(num >= max) num=max;
+	return num;
+}
+function minOrMax(num,min,max) {
+	if(num <= max/2) {
+		num=min
+	} else {
+		num=max;
+	}
 }
 function drawPlayers() {
 	var off = offset/10;
@@ -170,8 +182,14 @@ function drawPlayers() {
 			ctx.fillRect(posX,posY,pl.w,pl.h);
 			/*ctx.save();
 			ctx.beginPath();*/
+			if(onScreen(posX,posY,pl.w,pl.h)) {
+				indicator(pl.id,posX,posY,off)
+			} else {
+				posX = minOrMax(posX,10,790);
+				posY = minMax(posY,10,590);
+				indicator(pl.id,posX,posY,off)
+			}
 			
-			indicator(pl.id,posX,posY,off)
 			//I honestly don't know how this makes a triangle.
 			/*ctx.moveTo(posX+10,posY-5-off);
 			ctx.lineTo(posX+20,posY-5-off);
@@ -222,9 +240,9 @@ function createObjects() {
 	createObject(820,-70,30,120,true,"0,0,0")
 
 	createObject(620,60,10,60,false,"100,100,100")
-	createParticle(670,-40,"100,100,100",5,200,3,-3,1000);
-	createParticle(750,-40,"100,100,100",5,200,3,-3,1000);
-	createParticle(830,-40,"100,100,100",5,200,3,-3,1000);
+	createParticle(670,-40,"100,100,100",5,60,3,-3,1000);
+	createParticle(750,-40,"100,100,100",5,60,3,-3,1000);
+	createParticle(830,-40,"100,100,100",5,60,3,-3,1000);
 	//players
 	createPlayer(0,0,10,20,true,"255,255,255",{l:37,u:38,r:39},2,"1");
 }
@@ -233,6 +251,12 @@ function calculateGravity(g) {
 }
 function isColliding(x,y,w,h,x2,y2,w2,h2) {
 	return (x+w> x2 && x < x2+w2 && y+h > y2 && y < y2+h2)
+}
+function onScreen(x,y,w,h) {
+	if(x+w>=0 && x <= 800 && y+h >= 0 && y <= 600) {
+		return true
+	}
+	return false
 }
 function collide(plr) {
 	for(var o in objects) {
@@ -315,8 +339,10 @@ function randInt(min,max) {
 function logicParticles() {
 	for(var p in particles) {
 		var particle = particles[p];
-		if(particle.did < particle.amount) {
-			particle.did++;
+		var amtsixth = particle.amount/60;
+		particle.did++;
+		if(amtsixth*particle.did >= 1) {
+			particle.did = 0;
 			createSubParticle(particle);
 		}
 		if(tick == 60) {
@@ -339,7 +365,9 @@ function drawParticles() {
 		var subparticle = subparticles[sp];
 		ctx.fillStyle = "rgb("+subparticle.parent.color+")";
 		var pos = getPlayerOffset(subparticle.x,subparticle.y);
-		ctx.fillRect(pos.x,pos.y,subparticle.parent.size,subparticle.parent.size);
+		if(onScreen(pos.x,pos.y,subparticle.parent.size,subparticle.parent.size)) {
+			ctx.fillRect(pos.x,pos.y,subparticle.parent.size,subparticle.parent.size);
+		}
 	}
 }
 function loop() {
