@@ -1,15 +1,32 @@
 <html><body style="background-color:black;user-select: none" oncontextmenu="return false;"><center><canvas id="game" width="800" height="600" style="background-color:aliceblue"></canvas><p style="color:white">Press P to add a new player. (Max of 2, first player uses arrow keys, second uses WASD. Second player optional.)</p></center><script>
 players = []
 objects = []
+particles = []
+subparticles = []
 canvas = document.getElementById("game");
 ctx = canvas.getContext("2d");
 function createObject(x,y,w,h,collidable,color) {
 	objects.push({x,y,w,h,collidable,color})
-	return objects[objects.length-1];
+	return objects[objects.length-1]
 }
+
+
+
 function createPlayer(x,y,w,h,collidable,color,controls,speed,id) {
 	players.push({x,y,w,h,collidable,color,controls,gravity:0,move:{l:false,r:false},speed,id:id})
-	return players[objects.length-1]
+	return players[players.length-1]
+}
+
+
+
+
+function createParticle(x,y,color,size,amount,spreadX,speedY,life) {
+	particles.push({x,y,color,size,amount,spreadX,speedY,did:0,life});
+	return particles[particles.length-1]
+}
+function createSubParticle(parent) {
+	subparticles.push({x:(parent.x+(Math.random()+1)*5+-1),y:parent.y,life:0,parent});
+	return subparticles[particles.length-1]
 }
 /*REMOVE THIS FUNCTION IN THE MINIFIED VERSION*/
 function log(string) {
@@ -62,17 +79,22 @@ canvas.addEventListener("mousedown",function(k) {
 	if(k.button == 2) {
 		plr.x = x;
 		plr.y = y;
+		t=!t;
+		log(t);
 	} else {
 		vec1={x,y};
 	}
 })
+var t = false;
 canvas.addEventListener("mouseup",function(k) {
 	if(k.button == 0) {
 		var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
 		var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
 		vec2={x:x-vec1.x,y:y-vec1.y};
-
 		var obj = "createObject(" + (vec1.x) + "," + (vec1.y) + "," + (vec2.x) + "," + (vec2.y) + ",true,\"0,0,0\")";
+		if(t) {
+			var obj = "createObject(" + (vec1.x) + "," + (vec1.y) + "," + (vec2.x) + "," + (vec2.y) + ",false,\"100,100,100\")";
+		}
 		created.push(obj);
 		var createdStr = "";
 		for(var i in created) {
@@ -90,6 +112,10 @@ function playerInGround(plr) {
 	}
 	return false;
 }
+function getPlayerOffset(posX,posY) {
+	var plr = players[0];
+	return {x:posX-plr.x+(800/2-(plr.w/2)),y:(posY-plr.y)+400};
+}
 function drawObjects(collidable) {
 	for(var o in objects) {
 		var obj = objects[o];
@@ -97,8 +123,9 @@ function drawObjects(collidable) {
 			var obj = objects[o];
 			ctx.fillStyle = "rgb(" + obj.color + ")";
 			var plr = players[0]
-			var x = obj.x-plr.x+(800/2-(plr.w/2));
-			var y = obj.y-plr.y+400;
+			var position = getPlayerOffset(obj.x,obj.y);
+			var x = position.x;
+			var y = position.y;
 			if(x+obj.w >= 0 && y+obj.h >= 0 && x <= 800 && y <= 600) {
 			ctx.fillRect(x,y,obj.w,obj.h);
 			}
@@ -136,8 +163,9 @@ function drawPlayers() {
 		if(p != 0) {
 			var pl = players[p];
 			ctx.fillStyle = plr.color;
-			posX = pl.x-plr.x+(800/2-(plr.w/2))
-			posY = pl.y-plr.y+400
+			var position = getPlayerOffset(pl.x,pl.y);
+			var posX = position.x;
+			var posY = position.y;
 
 			ctx.fillRect(posX,posY,pl.w,pl.h);
 			/*ctx.save();
@@ -170,7 +198,7 @@ function createObjects() {
 	createObject(550,310,40,10,true,"0,0,0")
 	createObject(580,260,30,10,true,"0,0,0")
 	createObject(580,200,20,10,true,"0,0,0")
-	createObject(320,520,410,50,true,"0,0,0")
+	createObject(320,520,710,50,true,"0,0,0")
 	createObject(320,400,30,155,true,"0,0,0")
 	createObject(350,430,30,125,true,"0,0,0")
 	createObject(380,460,30,110,true,"0,0,0")
@@ -190,9 +218,13 @@ function createObjects() {
 	createObject(620,40,20,20,true,"0,0,0")
 	createObject(620,120,20,450,true,"0,0,0")
 	createObject(660,-70,30,120,true,"0,0,0")
+	createObject(740,-70,30,120,true,"0,0,0")
+	createObject(820,-70,30,120,true,"0,0,0")
 
 	createObject(620,60,10,60,false,"100,100,100")
-
+	createParticle(670,-40,"100,100,100",5,200,3,-3,1000);
+	createParticle(750,-40,"100,100,100",5,200,3,-3,1000);
+	createParticle(830,-40,"100,100,100",5,200,3,-3,1000);
 	//players
 	createPlayer(0,0,10,20,true,"255,255,255",{l:37,u:38,r:39},2,"1");
 }
@@ -276,15 +308,56 @@ function logicPlayers() {
 
 	}
 }
+var tick = 0;
+function randInt(min,max) {
+	return Math.random() * (max - min) + min;
+}
+function logicParticles() {
+	for(var p in particles) {
+		var particle = particles[p];
+		if(particle.did < particle.amount) {
+			particle.did++;
+			createSubParticle(particle);
+		}
+		if(tick == 60) {
+			particle.did = 0;
+		}
+	}
+	for(var sp in subparticles) {
+		var subparticle = subparticles[sp]
+		subparticle.life++;
+		if(subparticle.life > subparticle.parent.life) {
+			delete subparticles[sp];
+		}
+		subparticle.y+=subparticle.parent.speedY;
+		subparticle.x+=randInt(-subparticle.parent.spreadX,subparticle.parent.spreadX);
+	}
+
+}
+function drawParticles() {
+	for(var sp in subparticles) {
+		var subparticle = subparticles[sp];
+		ctx.fillStyle = "rgb("+subparticle.parent.color+")";
+		var pos = getPlayerOffset(subparticle.x,subparticle.y);
+		ctx.fillRect(pos.x,pos.y,subparticle.parent.size,subparticle.parent.size);
+	}
+}
 function loop() {
 	window.requestAnimFrame(function() {
 		loop();
 	});
 
 	logicPlayers();
+	logicParticles();
 
+	tick++;
+	if(tick > 60) {
+		tick =0;
+	}
 	ctx.clearRect(0,0,800,600);
+
 	drawObjects(false);
+	drawParticles();
 	drawObjects(true);
 	drawPlayers();
 	
