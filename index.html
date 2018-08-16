@@ -135,10 +135,10 @@ function playerInGround(plr) {
 }
 function getPlayerOffset(posX,posY) {
 	var plr = players[0];
-	return {x:posX-plr.x+(800/2-(plr.w/2)),y:(posY-plr.y)+400};
+	return {x:Math.round(posX-plr.x+(800/2-(plr.w/2))),y:Math.round(posY-plr.y)+400};
 }
 function getPlayerPos() {
-	return {x:(800/2-(plr.w/2)),y:400};
+	return {x:Math.round((800/2)-(plr.w/2)),y:400};
 }
 function drawObjects(collidable) {
 	for(var o in objects) {
