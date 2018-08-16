@@ -309,6 +309,7 @@ function collide(plr) {
 }
 var offset = 25;
 var up = true;
+var daaf = false;
 function logicPlayers() {
 	if(up) {
 		offset++;
@@ -325,8 +326,9 @@ function logicPlayers() {
 		var plr = players[p];
 		plr.gravity=calculateGravity(plr.gravity);
 		plr.y+=plr.gravity
-		if(plr.gravity >= 40) {
-			location.reload();
+		if(plr.gravity >= 40 && !daaf) {
+			location.reload(true);
+			daaf = true;
 		}
 		if(collide(plr)==true) {
 			plr.y-=plr.gravity
