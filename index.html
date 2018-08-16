@@ -39,6 +39,7 @@ function createPlayer(x,y,w,h,collidable,color,controls,speed,id) {
 }
 function createParticle(x,y,color,size,amount,spreadX,speedY,life) {
 	particles.push({x,y,color,size,amount,spreadX,speedY,did:0,life});
+	log(particles[particles.length-1])
 	return particles[particles.length-1]
 }
 function createSubParticle(parent) {
@@ -86,9 +87,9 @@ window.addEventListener("keyup",function(k) {
 })
 
 /*REMOVE THIS CODE IN THE MINIFIED VERSION!*/
-var vec1;
-var vec2;
-var created = [];
+/*var vec1;
+var vec2;*/
+//var created = [];
 canvas.addEventListener("mousedown",function(k) {
 	plr = players[0]
 	var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
@@ -96,15 +97,16 @@ canvas.addEventListener("mousedown",function(k) {
 	if(k.button == 2) {
 		plr.x = x;
 		plr.y = y;
-		t=!t;
-		log(t);
+		//t=!t;
+		//log(t);
 	} else {
-		vec1={x,y};
+		//vec1={x,y};
 	}
 })
-var t = false;
-canvas.addEventListener("mouseup",function(k) {
+//var t = false;
+/*canvas.addEventListener("mouseup",function(k) {
 	if(k.button == 0) {
+		var plr = players[0];
 		var x = Math.round(((k.clientX-canvas.offsetLeft)-((800/2-(plr.w/2))-plr.x))/10)*10;
 		var y = Math.round(((k.clientY-canvas.offsetTop)-((400)-plr.y))/10)*10;
 		vec2={x:x-vec1.x,y:y-vec1.y};
@@ -123,7 +125,7 @@ canvas.addEventListener("mouseup",function(k) {
 		log(createdStr);
 		createObject(vec1.x,vec1.y,vec2.x,vec2.y,true,"0,0,0")
 	}
-})
+})*/
 /*REMOVE THIS CODE IN THE MINIFIED VERSION!*/
 function playerInGround(plr) {
 	plr.y+=1;
@@ -135,10 +137,10 @@ function playerInGround(plr) {
 }
 function getPlayerOffset(posX,posY) {
 	var plr = players[0];
-	return {x:Math.round(posX-plr.x+(800/2-(plr.w/2))),y:Math.round(posY-plr.y)+400};
+	return {x:Math.floor(posX-plr.x+(800/2-(plr.w/2))),y:Math.floor(posY-plr.y)+400};
 }
 function getPlayerPos() {
-	return {x:Math.round((800/2)-(plr.w/2)),y:400};
+	return {x:Math.floor((800/2)-(plr.w/2)),y:400};
 }
 function drawObjects(collidable) {
 	for(var o in objects) {
@@ -159,7 +161,8 @@ function drawObjects(collidable) {
 function indicator(id,posX,posY,off,pointX,pointY) {
 		ctx.save();
 		ctx.beginPath();
-		
+		ctx.font = "15px Verdana";
+		ctx.textAlign = "center";
 		if(pointX != undefined && pointY != undefined) {
 			ctx.save();
 			ctx.transform(0,1,1,0,posX+10,posY-off-15);
@@ -178,7 +181,7 @@ function indicator(id,posX,posY,off,pointX,pointY) {
 			ctx.lineTo(posX+10,posY-15-off);
 			ctx.lineTo(posX+5,posY-5-off);
 			ctx.fillStyle = "rgb(0,100,0)"
-			ctx.fillText(id,posX+3,posY-20-off)
+			ctx.fillText(id,posX+5,posY-20-off)
 		}
 		ctx.lineWidth=2;
 		var clr = "rgb(120,180,140)";
@@ -204,53 +207,41 @@ function minOrMax(num,min,max) {
 	return num;
 }
 function drawPlayers() {
-	var off = offset/10;
-	var plr = players[0]
-	ctx.fillStyle = "rgb(" + plr.color + ")";
-	var posX = 800/2-(plr.w/2);
-	var posY = 400
-	ctx.fillRect(posX,posY,plr.w,plr.h);
-	if(players.length > 1) {
-		indicator(plr.id,posX,posY,off);
-	}
-	for(var p in players) {
-		if(p != 0) {
-			var pl = players[p];
-			ctx.fillStyle = plr.color;
-			var position = getPlayerOffset(pl.x,pl.y);
-			var posX = position.x;
-			var posY = position.y;
-			ctx.fillRect(posX,posY,pl.w,pl.h);
-			if(onScreen(posX,posY,pl.w,pl.h)) {
-				indicator(pl.id,posX,posY,off,"down")
-			} else {
-				posX = minMax(posX,10,790);
-				posY = minMax(posY,10,590);
-				indicator(pl.id,posX,posY,off,position.x,position.y)
+	if(players.length != 0) {
+		var off = offset/10;
+		var plr = players[0]
+		ctx.fillStyle = "rgb(" + plr.color + ")";
+		var posX = 800/2-(plr.w/2);
+		var posY = 400
+		ctx.fillRect(posX,posY,plr.w,plr.h);
+		if(players.length > 1) {
+			indicator(plr.id,posX,posY,off);
+		}
+		for(var p in players) {
+			if(p != 0) {
+				var pl = players[p];
+				ctx.fillStyle = plr.color;
+				var position = getPlayerOffset(pl.x,pl.y);
+				var posX = position.x;
+				var posY = position.y;
+				ctx.fillRect(posX,posY,pl.w,pl.h);
+				if(onScreen(posX,posY,pl.w,pl.h)) {
+					indicator(pl.id,posX,posY,off,"down")
+				} else {
+					posX = minMax(posX,10,790);
+					posY = minMax(posY,10,590);
+					indicator(pl.id,posX,posY,off,position.x,position.y)
+				}
 			}
 		}
 	}
 }
+var sa = false;
 function createObjects() {
-	cobjects([[-280,150,70,420],[210,440,410,130],[200,370,120,200],[370,350,40,10],[420,310,40,10],[550,310,40,10],[580,260,30,10],[580,200,20,10],[320,520,710,50],[320,400,30,155],[350,430,30,125],[380,460,30,110],[410,490,30,75],[440,520,30,50],[580,140,30,10],[640,40,280,20],[620,40,20,20],[620,120,20,450],[660,-70,30,120],[740,-70,30,120],[820,-70,30,120],[640,490,300,10],[680,440,40,50],[780,440,60,50],[870,460,20,30],[740,340,260,10],[640,120,10,370],[660,90,190,10],[650,130,10,10],[650,200,10,10],[650,270,10,10],[650,340,10,10],[650,410,10,10],[990,490,40,30],[990,450,10,40],[1000,450,30,20],[1020,470,10,20],[1000,420,20,30],[-280,510,530,60],[190,370,10,10],[190,430,10,10],[190,490,10,10],[1030,270,20,300],[940,480,20,30],[920,510,60,10],[960,490,30,20],[1070,220,30,40],[1170,220,20,40],[1280,220,30,40],[1410,220,40,30],[920,40,20,150],[940,170,120,10],[940,180,120,10],[1450,90,120,290],[1030,370,660,10],[1050,270,10,10],[1050,330,10,10], [-470,550,200,20],[-470,150,10,420],[-470,150,190,10],[-290,200,10,10],[780,90,10,250],[1380,140,10,10],[1330,80,10,10],[1090,130,10,10],[1160,80,10,10],[1240,40,10,10],[1440,170,10,10],[1440,110,10,10],[1570,150,10,10],[1570,210,10,10],[1570,270,10,10],[1570,320,10,10],[1570,90,10,10],[1790,360,110,10],[1910,360,30,10],[1960,360,20,10],[2010,360,20,10],[2030,110,10,260],[1960,110,20,10],[2010,110,20,10],[1850,110,110,10],[1890,370,10,360],[1910,370,10,360],[1930,370,10,360],[1960,370,10,360],[1970,370,10,360],[2010,370,10,350],[1860,720,30,10],[1860,730,10,100],[1960,730,10,110],[1930,2370,30,10],[1960,840,250,10],[2010,720,320,10],[2320,820,30,30],[2350,800,20,50],[2340,800,10,20],[2360,780,10,20],[2370,780,10,70],[2380,780,10,70],[2390,760,30,90],[2420,740,110,110],[2330,650,10,80],[2340,650,210,10],[2630,740,110,110],[2550,650,190,10],[2740,650,10,40],[2740,740,10,10],[2750,670,20,20],[2770,680,10,10],[2750,740,30,10],[2780,680,10,10],[2740,840,90,10],[2740,810,20,10],[2740,770,30,10],[2740,780,20,30],[2740,750,40,20],[2740,820,10,20],[2760,800,20,10],[2530,740,10,10],[2530,750,10,10],[2190,850,10,100],[2190,950,460,10],[2630,850,10,100],[2200,900,10,10],[2580,50,30,600],[2610,610,10,20],[2610,550,10,20],[2610,490,10,20],[2610,430,10,20],[2610,380,10,20],[2610,330,10,20],[2610,280,10,20],[2610,230,10,20],[2610,180,10,20],[2610,130,10,20],[2610,80,10,20],[2360,580,220,70],[2360,440,10,140]]);
-	uncollidableObjects([[430,320,20,200],[380,360,20,120],[590,270,30,10],[590,210,30,10],[560,310,20,210],[590,150,30,10],[660,460,20,30],[770,460,10,30],[840,470,10,20],[900,440,40,50],[620,60,10,60],[920,500,10,20],[830,500,10,20],[720,500,10,20],[660,500,10,20],[770,500,10,20],[870,500,10,20],[660,60,30,50],[690,90,160,40],[830,50,10,60],[750,60,20,60],[740,120,10,380],[740,340,260,30],[980,350,10,170],[650,-70,190,10],[650,-130,10,60],[660,-130,10,10],[670,-120,10,10],[660,-110,10,10],[670,-100,10,20],[660,-80,10,10],[710,-130,10,60],[720,-130,30,10],[740,-120,10,50],[720,-80,30,10],[780,-130,10,30],[790,-100,10,10],[780,-90,10,20],[800,-90,10,20],[800,-130,10,30],[1000,470,30,20],[1040,190,10,80],[1050,220,400,10],[1380,140,70,10],[1330,80,10,290],[1240,40,10,330],[930,130,170,10],[930,80,240,10],[2310,670,280,10],[2570,540,20,130],[2020,710,310,10],[2010,680,20,10],[2020,610,10,10],[1870,580,150,10],[1880,460,10,10],[1880,460,10,10],[1880,520,10,10],[1880,390,150,10],[1570,270,210,10],[1780,280,130,10],[1910,290,60,10],[1970,300,10,10],[1980,300,10,10],[1990,310,10,20],[2000,330,10,30],[1880,350,120,10],[2030,180,0,0],[1880,350,120,10],[1570,220,10,10],[1570,160,10,10],[1570,100,10,10],[1450,80,120,10],[1340,170,30,10],[1250,170,50,10],[1270,120,60,10],[1060,170,50,20],[270,320,30,50],[260,310,50,10],[150,290,60,220],[140,270,80,20],[-280,200,310,10],[20,210,10,300],[30,220,10,10]]);
+	cobjects([[220,270,150,10],[210,220,10,50],[190,170,10,50],[200,220,10,10],[370,240,10,30],[380,190,10,40],[370,230,10,10],[320,180,60,10],[310,140,10,40],[220,230,10,10],[180,120,10,40],[170,160,10,10],[180,170,10,10],[320,90,10,50],[280,80,40,10],[240,170,20,20],[170,90,10,30],[100,80,60,10],[170,80,10,10],[160,70,10,10],[270,40,10,40],[230,30,30,10],[260,20,10,10],[270,30,10,10],[190,20,40,10],[130,10,60,10],[80,20,50,10],[30,90,60,10],[90,80,10,10],[20,30,60,10],[-10,80,40,10],[-40,20,60,10],[-30,90,20,10],[-50,10,10,10],[-40,-30,10,40],[-30,-100,10,70],[-20,-140,10,30],[-20,-110,10,10],[-10,-180,10,40],[0,-190,10,10],[10,-200,10,10],[20,-210,30,10],[60,-220,50,10],[50,-220,10,10],[120,-230,170,10],[110,-230,10,10],[-50,100,20,10],[-200,110,150,10],[-390,120,190,10],[-1150,150,170,10],[-1090,100,10,50],[-1080,90,10,10],[-1090,80,10,10],[-1100,70,10,10],[-1120,60,20,10],[-1130,70,10,10],[-1140,80,10,10],[-1150,90,10,10],[-1120,130,20,20],[-1130,110,10,10],[-1100,110,10,10],[-1140,90,60,10],[-1140,100,10,50],[-1330,160,180,10],[-1080,130,10,10],[-1150,130,10,10],[-1580,170,250,10],[-980,160,10,20],[-970,180,10,20],[-960,200,10,40],[-950,240,20,10],[-930,260,10,60],[-930,250,10,10],[-920,320,10,80],[-910,400,10,10],[-900,410,10,20],[-890,430,20,10],[-870,440,10,10],[-860,450,50,10],[-810,460,50,10],[-760,470,10,10],[-740,480,110,10],[-750,480,10,10],[-630,470,100,10],[-530,460,50,10],[-480,450,40,10],[-440,390,10,60],[-430,280,10,100],[-440,380,10,10],[-420,180,10,100],[-410,160,10,20],[-400,130,10,20],[-400,150,10,10],[-910,380,10,10],[-910,330,10,10],[-920,310,10,10],[-890,260,10,30],[-880,290,10,10],[-880,280,10,10],[-900,270,10,10],[-930,240,10,10],[-920,240,10,10],[-910,250,10,10],[-900,260,10,10],[-880,270,10,10],[-870,270,10,20],[-450,240,30,10],[-490,250,40,10],[-500,240,10,30],[-510,250,10,30],[-520,280,10,10],[-530,260,10,20],[-520,250,10,30],[-660,330,50,10],[-610,340,50,10],[-800,330,30,10]]);
+	uncollidableObjects([[240,180,10,90],[200,190,60,10],[290,90,10,50],[280,140,10,60],[270,200,10,40],[260,240,10,30],[270,150,40,10],[220,140,50,10],[190,130,30,10],[150,20,10,60],[100,30,10,50],[40,40,10,50],[70,40,10,50],[0,30,10,50],[-1130,110,40,40],[-1130,100,40,10],[-1130,80,40,10],[-1120,70,20,10],[-1080,100,10,10],[-1150,100,10,10],[-260,100,10,20],[-250,90,10,10],[-320,110,10,10],[-240,110,30,10],[-250,100,10,10],[-230,100,20,10],[-210,100,10,10],[-200,90,20,10],[-190,100,10,10],[-170,90,30,10],[-180,100,10,10],[-160,100,20,10],[-150,80,10,10],[-140,90,20,10],[-130,100,10,10],[-120,100,10,10],[-90,100,10,10],[-350,110,10,10],[-360,100,10,10],[-340,100,10,10],[-330,90,10,10],[-320,90,10,10],[-330,100,20,10],[-330,110,10,10],[-840,430,20,20],[-830,380,20,50],[-820,350,40,30],[-800,340,40,10],[-770,330,110,10],[-680,340,70,10],[-620,350,60,10],[-550,380,10,60],[-540,420,10,50],[-750,470,120,10],[-810,380,40,80],[-820,430,10,20],[-770,350,10,110],[-780,350,10,30],[-760,340,80,60],[-680,350,60,10],[-760,400,210,70],[-550,440,10,30],[-420,150,20,10],[-680,360,130,40]])
 
-	createParticle(670,-40,"100,100,100",5,60,3,-3,1000);
-	createParticle(750,-40,"100,100,100",5,60,3,-3,1000);
-	createParticle(830,-40,"100,100,100",5,60,3,-3,1000);
-
-	createParticle(-290,200,"0,0,255",3,60,5,5,1000);
-	createParticle(35,220,"0,0,255",3,30,2,7,500);
-
-	createObject(2370,550,20,30,true,"100,0,0",function() {
-		for(var i in players) {
-			var plr = players[i]
-			plr.collidable = false;
-		}
-		document.body.style.backgroundColor = "rgb(100,100,100)"
-	});
-	//players
-	createPlayer(0,-500,10,20,true,"0,0,0",{l:37,u:38,r:39},2,"1");
+	createPlayer(294,170,10,20,true,"0,0,0",{l:37,u:38,r:39},2,"1");
 }
 
 function calculateGravity(g) {
@@ -349,6 +340,17 @@ var tick = 0;
 function randInt(min,max) {
 	return Math.random() * (max - min) + min;
 }
+function clearGame() {
+	for(var i in particles) {
+		delete particles[i];
+	}
+	for(var i in objects) {
+		delete objects[i];
+	}
+	for(var i in players) {
+		delete players[i];
+	}
+}
 function logicParticles() {
 	for(var p in particles) {
 		var particle = particles[p];
@@ -375,14 +377,21 @@ function logicParticles() {
 }
 function drawParticles() {
 	for(var sp in subparticles) {
+		var pos;
 		var subparticle = subparticles[sp];
+		if(players.length == 0) {
+			pos = {x:subparticle.x,y:subparticle.y}
+		} else {
+			pos = getPlayerOffset(subparticle.x,subparticle.y);
+		}
 		ctx.fillStyle = "rgb("+subparticle.parent.color+")";
-		var pos = getPlayerOffset(subparticle.x,subparticle.y);
 		if(onScreen(pos.x,pos.y,subparticle.parent.size,subparticle.parent.size)) {
 			ctx.fillRect(pos.x,pos.y,subparticle.parent.size,subparticle.parent.size);
 		}
 	}
 }
+var screen = 0;
+ctx.textAlign = "center"
 function loop() {
 	window.requestAnimFrame(function() {
 		loop();
@@ -396,12 +405,16 @@ function loop() {
 		tick =0;
 	}
 	ctx.clearRect(0,0,800,600);
-
 	drawObjects(false);
 	drawParticles();
 	drawObjects(true);
 	drawPlayers();
-	
+	if(screen == 0) {
+		//Had to hardcode this, if I had the filesize to spare i'd add a new text object
+		ctx.font = "40px Verdana";
+		ctx.fillStyle = "black";
+		ctx.fillText("Click to play",800/2,600/2)
+	}
 }
 
 window.requestAnimFrame = (function() {
@@ -410,8 +423,23 @@ window.requestAnimFrame = (function() {
 		   window.oRequestAnimationFrame ||
 		   window.setTimeout(function(callback){},1000/60);
 })();
-
-createObjects();
+titleParticle = createParticle(5,5,"0,0,100",7,60,5,-3,50)
+canvas.addEventListener("mousemove",function(e) {
+	if(screen == 0) {
+		if(titleParticle != undefined) {
+			titleParticle.x = e.clientX-canvas.offsetLeft
+			titleParticle.y = e.clientY-canvas.offsetTop
+		}
+	}
+})
+canvas.addEventListener("mousedown",function(e) {
+	if(screen == 0) {
+		screen = 1;
+		clearGame();
+		createObjects();
+	}
+})
+//createObjects();
 
 loop();
 </script></body>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<body style="outline:none; user-select: none;background-color: aliceblue" oncontextmenu="return false;">
+	<canvas id="editor" style="background-color:white;" width="800" height="600"></canvas><input type="text" id="load" placeholder="Load uncollidables"/><input type="text" id="load2" placeholder="Load Collidables"/><button onclick="loa()">load</button><input type="text" id="color" style="outline:none;" placeholder="Color" value="0,0,0"/><button id="tcol" onclick="tco();">Collide: true</button><button id="gen" onclick = "gen();">Generate</button><p id="coords">Mouse Coords: </p>
+<script>
+	//THIS WILL NOT BE INCLUDED IN THE GAME PACKAGE. I am just using this to make my life easier.
+	//Also, this is the messiest code i've ever written. You have been warned.
+var mouse = {x:0,y:0};
+var color = document.getElementById("color");
+var canvas = document.getElementById("editor");
+var coords = document.getElementById("coords");
+var tcol = document.getElementById("tcol")
+var ctx = canvas.getContext("2d");
+var clr = "0,0,0";
+var objects = [];
+
+function drawObjects(collidable) {
+	for(var o in objects) {
+		var obj = objects[o];
+		if(obj.collidable == collidable) {
+			var obj = objects[o];
+			ctx.fillStyle = "rgb(" + obj.color + ")";
+			var position = getObjectOffset(obj.x,obj.y);
+			var x = position.x;
+			var y = position.y;
+			if(obj.overlay != undefined) {
+				ctx.fillStyle = "rgb(" + obj.overlay + ")";
+			}
+			if(onScreen(x,y,obj.w,obj.h)) {
+				ctx.fillRect(x,y,obj.w,obj.h);
+			}
+		}
+	}
+}
+function onScreen(x,y,w,h) {
+	if(x+w>=0 && x <= 800 && y+h >= 0 && y <= 600) {
+		return true
+	}
+	return false
+}
+var dragging = false;
+var camera = {x:0,y:0}
+var dragOffset = {x:0,y:0}
+var dragStart = {x:0,y:0}
+
+var makingObject = false;
+var objectSize = {x:10,y:10}
+var start = {x:0,y:0}
+var collidable = true;
+function loa() {
+	var unc = JSON.parse(document.getElementById("load").value);
+	var c = JSON.parse(document.getElementById("load2").value);
+	for(var i in unc) {
+		var o = unc[i];
+		createObject(o[0],o[1],o[2],o[3],false,"100,100,100");
+	}
+	for(var i in c) {
+		var o = c[i];
+		createObject(o[0],o[1],o[2],o[3],true,"0,0,0");
+		log(objects);
+	}
+}
+function createObject(x,y,w,h,collidable,color,onTouch) {
+	if(onTouch != undefined) {
+		objects.push({x,y,w,h,collidable,color,onTouch})
+	} else {
+		objects.push({x,y,w,h,collidable,color})
+	}
+	return objects[objects.length-1]
+}
+canvas.addEventListener("mousedown",function(b) {
+	//Left Click
+	if(b.button == 0) {
+		var del = false;
+		for(var i in objects) {
+			var obj = objects[i];
+			var objOff = getObjectOffset(obj.x,obj.y);
+			if(within(mouse.x,mouse.y,objOff.x,objOff.y,obj.w,obj.h)) {
+				delete objects[i];
+				del = true;
+			}
+		}
+		if(!del) {
+			makingObject = true;
+			start = {x:mouse.x-camera.x,y:mouse.y-camera.y}
+			start.x = nearestTen(start.x)
+			start.y = nearestTen(start.y)
+		}
+
+	}
+	//Right Click
+	if(b.button == 2) {
+		dragging = true;
+		dragStart = {x:mouse.x,y:mouse.y}
+	}
+})
+canvas.addEventListener("mouseup",function(b) {
+	//Left Click
+	if(b.button == 0) {
+		makingObject = false;
+		if(objectSize.x != 0 && objectSize.y != 0) {
+			if(objectSize.x < 0) {
+				start.x+=objectSize.x;
+				objectSize.x = Math.abs(objectSize.x);
+			}
+			if(objectSize.y < 0) {
+				start.y+=objectSize.y;
+				objectSize.y = Math.abs(objectSize.y);
+			}
+			o = createObject(start.x,start.y,objectSize.x,objectSize.y,collidable,clr)
+			log(o.color);
+			start = {x:0,y:0};
+			objectSize = {x:0,y:0};
+		}
+	}
+	//Right Click
+	if(b.button == 2) {
+		dragging = false;
+	}
+})
+canvas.addEventListener("mousemove",function(e) {
+	mouse = {x:e.clientX-canvas.offsetLeft,y:e.clientY-canvas.offsetTop}
+	if(dragging) {
+		dragOffset = {x:mouse.x-dragStart.x,y:mouse.y-dragStart.y};
+		var dof = getObjectOffset(dragOffset.x,dragOffset.y)
+		camera = {x:dof.x,y:dof.y};
+		dragStart = {x:mouse.x,y:mouse.y};
+		delete dragOffset;
+	}
+	if(makingObject) {
+		var mouseOffset = {x:mouse.x-camera.x,y:mouse.y-camera.y}
+		var added = {x:nearestTen(mouseOffset.x-start.x),y:nearestTen(mouseOffset.y-start.y)}
+		objectSize = added;
+	}
+	for(var i in objects) {
+		var obj = objects[i];
+		var objOff = getObjectOffset(obj.x,obj.y);
+		if(within(mouse.x,mouse.y,objOff.x,objOff.y,obj.w,obj.h)) {
+			obj.overlay = "255,0,0";
+		} else {
+			delete obj.overlay
+		}
+	}
+})
+function within(px,py,x,y,w,h) {
+	return (px >= x && px <= x+w && py>=y && py <= y+h)
+}
+function gen() {
+	var output = "Normal Output:\n";
+	var customOutput = "Uncollidable Output: \n";
+	var normalCustomOutput = "Collidable Output: \n";
+	for(var i in objects) {
+		var obj = objects[i];
+		var re = reverseObjectOffset(obj.x,obj.y);
+		/*obj.x = re.x;
+		obj.y = re.y;*/
+		if(obj.color == "100,100,100" && obj.collidable==false) {
+			customOutput+="[" + obj.x + "," + obj.y + "," + obj.w + "," + obj.h + "],";
+		} else if(obj.color == "0,0,0" && obj.collidable==true) {
+			normalCustomOutput +="[" + obj.x + "," + obj.y + "," + obj.w + "," + obj.h + "],";
+		} else {
+			output += "createObject(" + obj.x + "," + obj.y + "," + obj.w + "," + obj.h + "," + obj.color + "," + obj.collidable + ")\n"
+		}
+	}
+	log(output);
+	log(customOutput);
+	log(normalCustomOutput);
+}
+function mouseOffsets() {
+	return {x:mouse.x-camera.x,y:mouse.y-camera.y}
+}
+function nearestTen(x) {
+	return Math.round(x/10)*10;
+}
+function tco() {
+	collidable = !collidable;
+	tcol.innerHTML = "Collide: " + collidable
+}
+function getObjectOffset(x,y) {
+	return {x:x+camera.x,y:y+camera.y};
+}
+function reverseObjectOffset(x,y) {
+	return {x:camera.x-x,y:camera.y-y};
+}
+function log(s) {
+	console.log(s);
+}
+function init() {
+
+	loop();
+}
+function loop() {
+	window.requestAnimFrame(function() {
+		loop();
+	});
+	update();
+	render();
+}
+function update() {
+	clr = color.value;
+}
+function render() {
+	ctx.clearRect(0,0,800,600);
+	coords.innerHTML = "Mouse Coords: " + (mouse.x+camera.x) + "," +  (mouse.y+camera.y);
+	color.style.borderColor = "rgb(" + color.value + ")";
+	color.style.borderStyle = "solid";
+	color.style.borderWidth = "20px";
+	var st = getObjectOffset(start.x,start.y)
+	ctx.strokeRect(st.x,st.y,objectSize.x,objectSize.y)
+	drawObjects(false);
+	drawObjects(true)
+}
+window.requestAnimFrame = (function() {
+	return window.requestAnimationFrame ||
+	window.webkitRequestAnimationFrame ||
+	window.setTimeout(function(callback){},1000/60);
+})();
+init();
+</script>
+</body>
+</html>
