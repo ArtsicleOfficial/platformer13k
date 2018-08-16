@@ -1,4 +1,4 @@
-<html><body style="background-color:black;user-select: none" oncontextmenu="return false;"><center><canvas id="game" width="800" height="600" style="background-color:aliceblue"></canvas><p style="color:white">Press P to add a new player. (Max of 2, first player uses arrow keys, second uses WASD. Second player optional.)</p></center><script>
+<html><body style="background-color:black;user-select: none" oncontextmenu="return false;"><center><canvas id="game" width="800" height="600" style="background-color:aliceblue"></canvas>><p style="color:white">Press P to add a new player. (Max of 2, first player uses arrow keys, second uses WASD. Second player optional.)<br/></p></center><script>
 players = []
 objects = []
 particles = []
@@ -33,6 +33,7 @@ function uncollidableObjects(objects) {
 		createObject(obj[0]*10,obj[1]*10,obj[2]*10,obj[3]*10,false,"100,100,100")
 	}
 }
+
 function createPlayer(x,y,w,h,collidable,color,controls,speed,id) {
 	players.push({x,y,w,h,collidable,color,controls,gravity:0,move:{l:false,r:false},speed,id:id})
 	return players[players.length-1]
@@ -134,6 +135,7 @@ function playerInGround(plr) {
 		plr.y-=1;
 		return true;
 	}
+	plr.y-=1;
 	return false;
 }
 function getPlayerOffset(posX,posY) {
@@ -322,16 +324,20 @@ function logicPlayers() {
 	if(offset <= 0) {
 		up = true;
 	}
-	for(let p in players) {
+	for(p in players) {
 		var plr = players[p];
 		plr.gravity=calculateGravity(plr.gravity);
-		plr.y+=plr.gravity
+		plr.y+=Math.round(plr.gravity)
 		if(plr.gravity >= 40 && !daaf) {
 			location.reload(true);
 			daaf = true;
 		}
 		if(collide(plr)==true) {
-			plr.y-=plr.gravity
+			plr.y-=Math.round(plr.gravity)
+			for(i=0;i<plr.gravity;i++) {
+				plr.y+=i;
+				if(collide(plr)==true)plr.y-=i;
+			}
 			plr.gravity = 0
 		}
 		if(plr.move.r) {
