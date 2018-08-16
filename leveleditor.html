@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body style="outline:none; user-select: none;background-color: aliceblue" oncontextmenu="return false;">
-	<canvas id="editor" style="background-color:white;" width="800" height="600"></canvas><input type="text" id="load" placeholder="Load uncollidables"/><input type="text" id="load2" placeholder="Load Collidables"/><button onclick="loa()">load</button><input type="text" id="color" style="outline:none;" placeholder="Color" value="0,0,0"/><button id="tcol" onclick="tco();">Collide: true</button><button id="gen" onclick = "gen();">Generate</button><p id="coords">Mouse Coords: </p>
+	<canvas id="editor" style="background-color:white;" width="800" height="600"></canvas><input type="text" id="load" placeholder="Load uncollidables"/><input type="text" id="load2" placeholder="Load Collidables"/><button onclick="loa()">load</button><input type="text" id="color" style="outline:none;" placeholder="Color" value="0,0,0"/><button id="tcol" onclick="tco();">Collide: true</button><button id="gen" onclick = "gen();">Generate</button><textarea id="do"></textarea><button onclick="doit();">Do It</button><p id="coords">Mouse Coords: </p>
 <script>
 	//THIS WILL NOT BE INCLUDED IN THE GAME PACKAGE. I am just using this to make my life easier.
 	//Also, this is the messiest code i've ever written. You have been warned.
@@ -37,6 +37,24 @@ function onScreen(x,y,w,h) {
 		return true
 	}
 	return false
+}
+function doit() {
+	var text = document.getElementById("do").value;
+	var array = JSON.parse(text);
+	var str = "[";
+	for(var i in array) {
+		str+="["
+		for(var it in array[i]) {
+			array[i][it]/=10;
+			str+=array[i][it]
+			if(it < 3) {
+				str+=","
+			}
+		}
+		str+="],"
+	}
+	str+="]"
+	document.getElementById("do").value = str;
 }
 var dragging = false;
 var camera = {x:0,y:0}
