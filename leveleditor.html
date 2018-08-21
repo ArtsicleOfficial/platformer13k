@@ -70,11 +70,11 @@ function loa() {
 	var c = JSON.parse(document.getElementById("load2").value);
 	for(var i in unc) {
 		var o = unc[i];
-		createObject(o[0],o[1],o[2],o[3],false,"100,100,100");
+		createObject(o[0]*10,o[1]*10,o[2]*10,o[3]*10,false,"100,100,100");
 	}
 	for(var i in c) {
 		var o = c[i];
-		createObject(o[0],o[1],o[2],o[3],true,"0,0,0");
+		createObject(o[0]*10,o[1]*10,o[2]*10,o[3]*10,true,"0,0,0");
 		log(objects);
 	}
 }
@@ -170,6 +170,10 @@ function gen() {
 	for(var i in objects) {
 		var obj = objects[i];
 		var re = reverseObjectOffset(obj.x,obj.y);
+		obj.x/=10
+		obj.y/=10
+		obj.w/=10
+		obj.h/=10
 		/*obj.x = re.x;
 		obj.y = re.y;*/
 		if(obj.color == "100,100,100" && obj.collidable==false) {
