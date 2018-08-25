@@ -164,7 +164,7 @@ function drawObjects(collidable) {
 			var x = position.x;
 			var y = position.y;
 			if(onScreen(x,y,obj.w,obj.h)) {
-				ctx.fillRect(x,y,obj.w,obj.h);
+				ctx.fillRect(Math.floor(x),Math.floor(y),Math.floor(obj.w),Math.floor(obj.h));
 			}
 		}
 	}
