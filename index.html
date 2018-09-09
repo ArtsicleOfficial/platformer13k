@@ -313,7 +313,14 @@ function collide(plr) {
 	for(var o in objects) {
 		var obj = objects[o];
 		var pob = getPlayerOffset(obj.x,obj.y);
-		if(onScreen(pob.x,pob.y,obj.w,obj.h,plr.x,plr.y) || players.length == 1) {
+		if(onScreen(pob.x,pob.y,obj.w,obj.h,plr.x,plr.y) && players.length == 1) {
+			if(isColliding(plr.x+1,plr.y,plr.w-1,plr.h,obj.x,obj.y,obj.w,obj.h)==true && obj.collidable == plr.collidable) {
+				if(obj.onTouch != undefined) {
+					obj.onTouch();
+				}
+				return true;
+			}
+		} else {
 			if(isColliding(plr.x+1,plr.y,plr.w-1,plr.h,obj.x,obj.y,obj.w,obj.h)==true && obj.collidable == plr.collidable) {
 				if(obj.onTouch != undefined) {
 					obj.onTouch();
